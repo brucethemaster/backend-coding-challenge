@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from flask import abort, jsonify
 from webargs.flaskparser import use_args
 
+from sqlalchemy import and_, or_, not_
+
 from marshmallow import Schema, fields
 
 from service.server import app, db
@@ -39,12 +41,13 @@ def get_address(args, person_id):
     elif len(person.address_segments) == 0:
         abort(404, description="person does not have an address, please create one")
 
-    address_segment = person.address_segments[-1]
-    return jsonify(AddressSchema().dump(address_segment))
+    address_segment = sorted(person.address_segments,
+                             key=lambda x: x.start_date)
+    return jsonify(AddressSchema(many=True).dump(address_segment))
 
 
-@app.route("/api/persons/<uuid:person_id>/address", methods=["PUT"])
-@use_args(AddressSchema())
+@ app.route("/api/persons/<uuid:person_id>/address", methods=["PUT"])
+@ use_args(AddressSchema())
 def create_address(payload, person_id):
     person = Person.query.get(person_id)
     if person is None:
@@ -66,11 +69,28 @@ def create_address(payload, person_id):
         db.session.commit()
         db.session.refresh(address_segment)
     else:
+        address_segment_old = AddressSegment.query.filter(
+            and_(AddressSegment.end_date == None, AddressSegment.person_id == person_id)
+        ).first()
+        address_segment_old.end_date = payload.get("start_date")
+
+        address_segment = AddressSegment(
+            street_one=payload.get("street_one"),
+            street_two=payload.get("street_two"),
+            city=payload.get("city"),
+            state=payload.get("state"),
+            zip_code=payload.get("zip_code"),
+            start_date=payload.get("start_date"),
+            person_id=person_id,
+        )
+        db.session.add(address_segment)
+        db.session.commit()
+        db.session.refresh(address_segment)
         # TODO: Implementation
         # If there are one or more existing AddressSegments, create a new AddressSegment
         # that begins on the start_date provided in the API request and continues
         # into the future. If the start_date provided is not greater than most recent
         # address segment start_date, raise an Exception.
-        raise NotImplementedError()
+        # raise NotImplementedError()
 
     return jsonify(AddressSchema().dump(address_segment))
