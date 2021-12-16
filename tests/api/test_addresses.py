@@ -149,63 +149,69 @@ def test_implementation_create_and_update_address(
 
 
 # TODO: Extension One
-# def test_extension_one_validation_of_same_start_date(test_context, client, seed_address_segment):
-#     with test_context:
-#         # Update the existing address using the person_id and start_date from the
-#         # already existing, seed_address_segment
-#         response = client.put(
-#             f"/api/persons/{seed_address_segment.person_id}/address", json={
-#                 "street_one": "123 Main Street",
-#                 "city": "San Francisco",
-#                 "state": "CA",
-#                 "zip_code": "94613",
-#                 "start_date": seed_address_segment.start_date.isoformat()
-#             }
-#         )
-#         assert response.status_code == 422
-#         assert response.json == {
-#             "error": "Address segment already exists with start_date 2021-01-01"
-#         }
+def test_extension_one_validation_of_same_start_date(test_context, client, seed_address_segment):
+    with test_context:
+        # Update the existing address using the person_id and start_date from the
+        # already existing, seed_address_segment
+        response = client.put(
+            f"/api/persons/{seed_address_segment.person_id}/address", json={
+                "street_one": "123 Main Street",
+                "city": "San Francisco",
+                "state": "CA",
+                "zip_code": "94613",
+                "start_date": seed_address_segment.start_date.isoformat()
+            }
+        )
+        assert response.status_code == 422
+        assert response.json == {
+            "error": "Address segment already exists with start_date 2021-01-01"
+        }
 
 # TODO: Extension Two
-# def test_extension_two_get_address_by_date(test_context, client, seed_address_segment):
-#     with test_context:
-#         start_date = seed_address_segment.start_date
-#         new_start_date = start_date + timedelta(days=90)
-#         response = client.put(
-#             f"/api/persons/{seed_address_segment.person_id}/address", json={
-#                 "street_one": "1 California Street",
-#                 "city": "San Francisco",
-#                 "state": "CA",
-#                 "zip_code": "94111",
-#                 "start_date": new_start_date.isoformat()
-#             }
-#         )
-#         assert response.status_code == 200
 
-#         first_get_response = client.get(f"/api/persons/{seed_address_segment.person_id}/address", query_string={"date": start_date.isoformat()})
-#         assert first_get_response.status_code == 200
-#         assert first_get_response.json["street_one"] == seed_address_segment.street_one
 
-#         second_get_response = client.get(f"/api/persons/{seed_address_segment.person_id}/address?date={new_start_date.isoformat()}")
-#         assert second_get_response.status_code == 200
-#         assert second_get_response.json["street_one"] == "1 California Street"
+def test_extension_two_get_address_by_date(test_context, client, seed_address_segment):
+    with test_context:
+        start_date = seed_address_segment.start_date
+        new_start_date = start_date + timedelta(days=90)
+        response = client.put(
+            f"/api/persons/{seed_address_segment.person_id}/address", json={
+                "street_one": "1 California Street",
+                "city": "San Francisco",
+                "state": "CA",
+                "zip_code": "94111",
+                "start_date": new_start_date.isoformat()
+            }
+        )
+        assert response.status_code == 200
+
+        first_get_response = client.get(
+            f"/api/persons/{seed_address_segment.person_id}/address", query_string={"date": start_date.isoformat()})
+        assert first_get_response.status_code == 200
+        assert first_get_response.json["street_one"] == seed_address_segment.street_one
+
+        second_get_response = client.get(
+            f"/api/persons/{seed_address_segment.person_id}/address?date={new_start_date.isoformat()}")
+        assert second_get_response.status_code == 200
+        assert second_get_response.json["street_one"] == "1 California Street"
 
 # TODO: Extension Three
-# def test_extension_three_merge_contiguous_equal_addresses(test_context, client, seed_address_segment):
-#     with test_context:
-#         start_date = seed_address_segment.start_date
-#         new_start_date = start_date + timedelta(days=90)
-#         response = client.put(
-#             f"/api/persons/{seed_address_segment.person_id}/address", json={
-#                 "street_one": seed_address_segment.street_one,
-#                 "city": seed_address_segment.city,
-#                 "state": seed_address_segment.state,
-#                 "zip_code": seed_address_segment.zip_code,
-#                 "start_date": new_start_date.isoformat()
-#             }
-#         )
-#         assert response.status_code == 200
 
-#         person = Person.query.get(seed_address_segment.person_id)
-#         assert len(person.address_segments) == 1
+
+def test_extension_three_merge_contiguous_equal_addresses(test_context, client, seed_address_segment):
+    with test_context:
+        start_date = seed_address_segment.start_date
+        new_start_date = start_date + timedelta(days=90)
+        response = client.put(
+            f"/api/persons/{seed_address_segment.person_id}/address", json={
+                "street_one": seed_address_segment.street_one,
+                "city": seed_address_segment.city,
+                "state": seed_address_segment.state,
+                "zip_code": seed_address_segment.zip_code,
+                "start_date": new_start_date.isoformat()
+            }
+        )
+        assert response.status_code == 200
+
+        person = Person.query.get(seed_address_segment.person_id)
+        assert len(person.address_segments) == 1
